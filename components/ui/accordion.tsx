@@ -46,7 +46,7 @@ const AccordionRoot = ({
   multiple = false,
   defaultValue = [],
   onValueChange,
-  animated = true, // Controle da animação
+  animated = true,
   style,
 }: AccordionRootProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>(defaultValue);
