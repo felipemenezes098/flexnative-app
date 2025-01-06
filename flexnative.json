@@ -1,0 +1,5 @@
+{
+  "tsconfigPath": "tsconfig.json",
+  "aliasPath": "./*",
+  "theme": "default"
+}

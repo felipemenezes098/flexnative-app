@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "flexnative-app",
+    "slug": "flexnative-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon/light/app-icon-large.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/icon/light/splash-image.png",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon/light/adaptive-icon-medium.png"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/icon/light/favicon-small.png"
+    },
+    "plugins": ["expo-router", "expo-font"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "newArchEnabled": true
+  }
+}
