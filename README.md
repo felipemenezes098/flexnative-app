@@ -84,7 +84,7 @@ This repository is meant to inspire and support developers. If you’ve got feed
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE.md).
 
 ---
 
