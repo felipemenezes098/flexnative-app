@@ -1,187 +1,154 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Pressable, View, StyleSheet, Animated, StyleProp } from "react-native";
-
+import * as React from "react";
+import { StyleSheet, PressableStateCallbackType } from "react-native";
+import * as AccordionPrimitive from "@rn-primitives/accordion";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { getThemeColors } from "@/theme/theme-colors";
-import { ViewStyle } from "react-native";
 
-interface AccordionContextType {
-  expandedItems: string[];
-  toggleItem: (itemValue: string) => void;
-  animated: boolean;
-}
+import { View } from "@/components/ui/view";
+import { Text } from "@/components/ui/text";
 
-interface AccordionRootProps {
-  children: ReactNode;
-  multiple?: boolean;
-  style?: StyleProp<ViewStyle>;
-  defaultValue?: string[];
-  onValueChange?: (expandedItems: string[]) => void;
-  animated?: boolean;
-}
+import Ionicons from "@expo/vector-icons/Ionicons";
 
-interface AccordionItemProps {
-  value: string;
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
+const Accordion = AccordionPrimitive.Root;
 
-interface AccordionTriggerProps {
-  children: ReactNode | ((props: { isExpanded: boolean }) => ReactNode);
-  style?: StyleProp<ViewStyle>;
-}
-
-interface AccordionContentProps {
-  children: ReactNode | ((props: { isExpanded: boolean }) => ReactNode);
-  style?: StyleProp<ViewStyle>;
-}
-
-const AccordionContext = createContext<AccordionContextType | null>(null);
-const AccordionItemContext = createContext<{
-  value: string;
-  isExpanded: boolean;
-} | null>(null);
-
-const AccordionRoot = ({
-  children,
-  multiple = false,
-  defaultValue = [],
-  onValueChange,
-  animated = true,
-  style,
-}: AccordionRootProps) => {
-  const [expandedItems, setExpandedItems] = useState<string[]>(defaultValue);
-
-  const toggleItem = (itemValue: string) => {
-    setExpandedItems((prev) => {
-      const isExpanded = prev.includes(itemValue);
-      let newExpanded: string[];
-      if (multiple) {
-        newExpanded = isExpanded
-          ? prev.filter((value) => value !== itemValue)
-          : [...prev, itemValue];
-      } else {
-        newExpanded = isExpanded ? [] : [itemValue];
-      }
-      onValueChange?.(newExpanded);
-      return newExpanded;
-    });
-  };
-
-  return (
-    <AccordionContext.Provider value={{ expandedItems, toggleItem, animated }}>
-      <View style={style}>{children}</View>
-    </AccordionContext.Provider>
-  );
-};
-
-const AccordionItem = ({ value, children, style }: AccordionItemProps) => {
-  const context = useContext(AccordionContext);
-  if (!context) {
-    throw new Error("AccordionItem must be used within an AccordionRoot");
-  }
-
+const AccordionItem = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+>(({ style, ...props }, ref) => {
   const colors = getThemeColors();
-  const isExpanded = context.expandedItems.includes(value);
-
   return (
-    <View style={[styles.item, { borderBottomColor: colors.border }, style]}>
-      <AccordionItemContext.Provider value={{ value, isExpanded }}>
-        {children}
-      </AccordionItemContext.Provider>
-    </View>
-  );
-};
-
-const useAccordionItemContext = () => {
-  const context = useContext(AccordionItemContext);
-  if (!context) {
-    throw new Error("Accordion components must be used within AccordionItem");
-  }
-  return context;
-};
-
-const AccordionTrigger = ({
-  children,
-  style,
-  ...props
-}: AccordionTriggerProps & { isExpanded?: boolean }) => {
-  const { toggleItem } = useContext(AccordionContext) as AccordionContextType;
-  const { value, isExpanded } = useAccordionItemContext();
-
-  return (
-    <Pressable
-      onPress={() => toggleItem(value)}
-      style={[styles.header, isExpanded && styles.headerExpanded, style]}
+    <AccordionPrimitive.Item
+      ref={ref}
+      style={[styles.item, style, { borderColor: colors.border }]}
       {...props}
-    >
-      {typeof children === "function" ? children({ isExpanded }) : children}
-    </Pressable>
+    />
   );
-};
+});
+AccordionItem.displayName = "AccordionItem";
 
-const AccordionContent = ({
-  children,
-  style,
-  ...props
-}: AccordionContentProps & { isExpanded?: boolean }) => {
-  const { isExpanded } = useAccordionItemContext();
-  const { animated } = useContext(AccordionContext) as AccordionContextType;
-  const height = React.useRef(new Animated.Value(0)).current;
-  const [contentHeight, setContentHeight] = React.useState<number | null>(null);
+const AccordionTrigger = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+>(({ style, children, ...props }, ref) => {
+  const colors = getThemeColors();
+  const { isExpanded } = AccordionPrimitive.useItemContext();
 
-  const measureContent = (event: any) => {
-    const { height: measuredHeight } = event.nativeEvent.layout;
-    if (contentHeight === null) {
-      setContentHeight(measuredHeight);
-    }
-  };
-
+  const rotation = useSharedValue(0);
   React.useEffect(() => {
-    if (contentHeight !== null) {
-      if (animated) {
-        Animated.timing(height, {
-          toValue: isExpanded ? contentHeight : 0,
-          duration: 150,
-          useNativeDriver: false,
-        }).start();
-      } else {
-        height.setValue(isExpanded ? contentHeight : 0);
-      }
-    }
-  }, [isExpanded, contentHeight, animated]);
+    rotation.value = withTiming(isExpanded ? 180 : 0, {
+      duration: 300,
+      easing: Easing.ease,
+    });
+  }, [isExpanded]);
+
+  const chevronStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: rotation.value + "deg" }],
+    };
+  });
 
   return (
-    <Animated.View
-      style={[
-        {
-          height: contentHeight === null ? "auto" : height,
-        },
-        style,
+    <AccordionPrimitive.Trigger
+      ref={ref}
+      style={(state: PressableStateCallbackType) => [
+        styles.trigger,
+        state.pressed && styles.triggerPressed,
+        typeof style === "function" ? style(state) : style,
       ]}
       {...props}
     >
-      <View onLayout={measureContent} style={styles.contentContainer}>
-        {typeof children === "function" ? children({ isExpanded }) : children}
+      {typeof children === "function" ? (
+        children
+      ) : (
+        <View style={styles.triggerContent}>
+          <Text style={styles.triggerText}>{children}</Text>
+          <Animated.View style={chevronStyle}>
+            <Ionicons name="chevron-down" color={colors.primary} size={18} />
+          </Animated.View>
+        </View>
+      )}
+    </AccordionPrimitive.Trigger>
+  );
+});
+AccordionTrigger.displayName = "AccordionTrigger";
+
+const AccordionContent = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+>(({ style, children, forceMount, ...props }, ref) => {
+  const { isExpanded } = AccordionPrimitive.useItemContext();
+
+  const height = useSharedValue(0);
+  const [measuredHeight, setMeasuredHeight] = React.useState(0);
+
+  const onLayout = React.useCallback((event: any) => {
+    const { height } = event.nativeEvent.layout;
+    setMeasuredHeight(height);
+  }, []);
+
+  React.useEffect(() => {
+    if (!forceMount) {
+      height.value = withTiming(isExpanded ? measuredHeight : 0, {
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+      });
+    }
+  }, [isExpanded, measuredHeight, forceMount]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: forceMount ? measuredHeight : height.value,
+    overflow: forceMount ? "visible" : "hidden",
+  }));
+
+  return (
+    <Animated.View style={[styles.content, animatedStyle]} {...props}>
+      <View onLayout={onLayout} style={styles.hiddenContent}>
+        {children}
       </View>
     </Animated.View>
   );
-};
+});
+AccordionContent.displayName = "AccordionContent";
 
 const styles = StyleSheet.create({
   item: {
+    borderBottomWidth: 1,
     marginBottom: 10,
     borderRadius: 5,
     overflow: "hidden",
-    borderBottomWidth: 1,
   },
-  header: {
+  triggerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  trigger: {
     paddingVertical: 15,
+    paddingHorizontal: 10,
   },
-  headerExpanded: {},
-  contentContainer: {
-    paddingVertical: 10,
+  triggerPressed: {
+    opacity: 0.8,
+  },
+  triggerText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  content: {
+    overflow: "hidden",
+  },
+  hiddenContent: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 10,
     paddingBottom: 15,
   },
 });
 
-export { AccordionRoot, AccordionItem, AccordionTrigger, AccordionContent };
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };

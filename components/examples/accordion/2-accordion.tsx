@@ -2,13 +2,13 @@ import {
   AccordionContent,
   AccordionTrigger,
   AccordionItem,
-  AccordionRoot,
+  Accordion,
 } from "@/components/ui/accordion";
 import { Text } from "@/components/ui/text";
 
 export function AccordionExample2() {
   return (
-    <AccordionRoot>
+    <Accordion type="single" collapsible>
       <AccordionItem value="item1">
         <AccordionTrigger>
           <Text>Is it accessible?</Text>
@@ -29,15 +29,11 @@ export function AccordionExample2() {
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item3">
-        <AccordionTrigger>
-          <Text>Is it animated?</Text>
-        </AccordionTrigger>
+        <AccordionTrigger>Is it possible to redesign?</AccordionTrigger>
         <AccordionContent>
-          <Text>
-            Yes. It's animated by default, but you can disable it if you prefer.
-          </Text>
+          <Text>Yes. You can use it to design your own accordion.</Text>
         </AccordionContent>
       </AccordionItem>
-    </AccordionRoot>
+    </Accordion>
   );
 }

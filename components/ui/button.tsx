@@ -77,7 +77,7 @@ const Button: React.FC<ButtonProps & TouchableOpacityProps> = ({
     : size === "lg"
     ? 20
     : 16;
-  const buttonHeight = size === "sm" ? 40 : size === "lg" ? 56 : 38;
+  const buttonHeight = size === "sm" ? 40 : size === "lg" ? 56 : 42;
   const buttonWidth = isIconOnly ? buttonHeight : undefined;
   const textSize = size === "sm" ? 14 : size === "lg" ? 18 : 18;
 
