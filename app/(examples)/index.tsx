@@ -43,10 +43,7 @@ export default function Examples() {
           size="icon"
         />
       </View>
-      <Tabs
-        defaultValue={activeTab}
-        onValueChange={(value) => setActiveTab(value)}
-      >
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)}>
         <TabsList style={styles.tabList}>
           <TabsTrigger value="Home" style={styles.tabTrigger}>
             Home

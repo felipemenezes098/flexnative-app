@@ -1,144 +1,111 @@
-import React, { useState, useContext } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ViewProps,
-  TextProps,
-  TouchableOpacity,
-} from "react-native";
+import React from "react";
+import { StyleSheet, PressableStateCallbackType } from "react-native";
+import * as TabsPrimitive from "@rn-primitives/tabs";
+import { Text } from "@/components/ui/text";
+import { View } from "@/components/ui/view";
 import { getThemeColors } from "@/theme/theme-colors";
 
-export const TabsContext = React.createContext({
-  activeTab: "",
-  setActiveTab: (value: string) => {},
-});
+const Tabs = TabsPrimitive.Root;
 
-export const Tabs: React.FC<{
-  defaultValue: string;
-  children: React.ReactNode;
-  style?: ViewProps["style"];
-  onValueChange?: (value: string) => void;
-}> = ({ defaultValue, children, style, onValueChange }) => {
-  const [activeTab, setActiveTab] = useState(defaultValue);
-
-  const handleChange = (value: string) => {
-    setActiveTab(value);
-    if (onValueChange) onValueChange(value);
-  };
-
-  return (
-    <TabsContext.Provider value={{ activeTab, setActiveTab: handleChange }}>
-      <View style={style}>{children}</View>
-    </TabsContext.Provider>
-  );
-};
-
-export const TabsList: React.FC<{
-  children: React.ReactNode;
-  style?: ViewProps["style"];
-}> = ({ children, style }) => {
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ style, ...props }, ref) => {
   const colors = getThemeColors();
   return (
-    <View style={[styles.tabsList, { backgroundColor: colors.muted }, style]}>
-      {children}
-    </View>
-  );
-};
-
-export const TabsTrigger: React.FC<
-  {
-    value: string;
-    children: React.ReactNode;
-    style?: ViewProps["style"];
-    textStyle?: TextProps["style"];
-    isTouchable?: boolean;
-    disabled?: boolean;
-  } & ViewProps
-> = ({
-  value,
-  children,
-  style,
-  textStyle,
-  isTouchable,
-  disabled,
-  ...props
-}) => {
-  const { activeTab, setActiveTab } = useContext(TabsContext);
-  const isActive = activeTab === value;
-  const colors = getThemeColors();
-
-  return (
-    <TouchableOpacity
+    <TabsPrimitive.List
+      ref={ref}
+      style={[styles.list, { backgroundColor: colors.muted }, style]}
       {...props}
-      onPress={() => {
-        if (!disabled) setActiveTab(value);
-      }}
-      style={[
-        styles.tabTrigger,
-        isActive && {
+    />
+  );
+});
+TabsList.displayName = "TabsList";
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ style, children, value, disabled, ...props }, ref) => {
+  const { value: activeTab } = TabsPrimitive.useRootContext();
+  const colors = getThemeColors();
+
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      value={value}
+      style={(state: PressableStateCallbackType) => [
+        styles.trigger,
+        activeTab === value && {
           borderColor: colors["primary-foreground"],
           backgroundColor: colors.background,
         },
         disabled && {
           opacity: 0.5,
         },
-        style,
+        state.pressed && styles.triggerPressed,
+        typeof style === "function" ? style(state) : style,
       ]}
-      activeOpacity={isTouchable ? 0.5 : 1}
       disabled={disabled}
+      {...props}
     >
-      <Text
-        style={[
-          styles.tabText,
-          { color: colors["muted-foreground"] },
-          isActive && {
-            color: colors["primary"],
-            fontWeight: "bold",
-          },
-          textStyle,
-        ]}
-      >
-        {children}
-      </Text>
-    </TouchableOpacity>
+      {typeof children === "function" ? (
+        children
+      ) : (
+        <Text
+          style={[
+            styles.triggerText,
+            {
+              color:
+                activeTab === value
+                  ? colors.primary
+                  : colors["muted-foreground"],
+              fontWeight: activeTab === value ? "bold" : "normal",
+            },
+          ]}
+        >
+          {children}
+        </Text>
+      )}
+    </TabsPrimitive.Trigger>
   );
-};
+});
+TabsTrigger.displayName = "TabsTrigger";
 
-export const TabsContent: React.FC<{
-  value: string;
-  children: React.ReactNode;
-  style?: ViewProps["style"];
-}> = ({ value, children, style }) => {
-  const { activeTab } = useContext(TabsContext);
-
-  if (activeTab !== value) return null;
-
-  return <View style={style}>{children}</View>;
-};
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ style, children, ...props }, ref) => (
+  <TabsPrimitive.Content ref={ref} style={[styles.content, style]} {...props}>
+    <View style={styles.contentContainer}>{children}</View>
+  </TabsPrimitive.Content>
+));
+TabsContent.displayName = "TabsContent";
 
 const styles = StyleSheet.create({
-  tabsList: {
+  list: {
     flexDirection: "row",
-    marginBottom: 16,
-    borderRadius: 8,
+    justifyContent: "space-between",
+    marginBottom: 10,
     padding: 4,
-    alignSelf: "center",
-    width: "100%",
+    borderRadius: 8,
   },
-  tabTrigger: {
+  trigger: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 2,
-    borderColor: "transparent",
-    borderRadius: 8,
   },
-  tabText: {
+  triggerPressed: {},
+  triggerText: {
     fontSize: 14,
     fontWeight: "500",
   },
+  content: {},
+  contentContainer: {
+    flexDirection: "column",
+  },
 });
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };

@@ -1,131 +1,77 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import {
-  Pressable,
-  View,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-  GestureResponderEvent,
-} from "react-native";
+import React from "react";
+import { StyleSheet, PressableStateCallbackType } from "react-native";
+import * as CollapsiblePrimitive from "@rn-primitives/collapsible";
+import { Text } from "@/components/ui/text";
+import { View } from "@/components/ui/view";
+import { getThemeColors } from "@/theme/theme-colors";
 
-interface CollapsibleContextType {
-  open: boolean;
-  toggle: () => void;
-  disabled: boolean;
-}
+const Collapsible = CollapsiblePrimitive.Root;
 
-interface RootProps {
-  children: ReactNode;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-}
-
-interface TriggerProps {
-  children: ReactNode;
-  disabled?: boolean;
-  onPress?: (event: GestureResponderEvent) => void;
-  style?: StyleProp<ViewStyle>;
-}
-
-interface ContentProps {
-  children: ReactNode;
-  forceMount?: boolean;
-  style?: StyleProp<ViewStyle>;
-}
-
-const CollapsibleContext = createContext<CollapsibleContextType | null>(null);
-
-const useCollapsibleContext = () => {
-  const context = useContext(CollapsibleContext);
-  if (!context) {
-    throw new Error(
-      "Collapsible compound components must be used within a CollapsibleRoot"
-    );
-  }
-  return context;
-};
-
-export const CollapsibleRoot: React.FC<RootProps> = ({
-  children,
-  open: controlledOpen,
-  defaultOpen = false,
-  onOpenChange,
-  disabled = false,
-  style,
-}) => {
-  const [openState, setOpenState] = useState(defaultOpen);
-  const isControlled = controlledOpen !== undefined;
-  const open = isControlled ? controlledOpen : openState;
-
-  const toggle = () => {
-    if (disabled) return;
-    if (!isControlled) {
-      setOpenState(!open);
-    }
-    onOpenChange?.(!open);
-  };
+const CollapsibleTrigger = React.forwardRef<
+  React.ElementRef<typeof CollapsiblePrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Trigger>
+>(({ style, children, ...props }, ref) => {
+  const colors = getThemeColors();
 
   return (
-    <CollapsibleContext.Provider value={{ open, toggle, disabled }}>
-      <View style={style}>{children}</View>
-    </CollapsibleContext.Provider>
-  );
-};
-
-export const CollapsibleTrigger: React.FC<TriggerProps> = ({
-  children,
-  disabled = false,
-  onPress,
-  style,
-}) => {
-  const { open, toggle } = useCollapsibleContext();
-
-  const handlePress = (event: GestureResponderEvent) => {
-    if (disabled) return;
-    toggle();
-    onPress?.(event);
-  };
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={[styles.trigger, style]}
-      accessibilityState={{ expanded: open, disabled }}
+    <CollapsiblePrimitive.Trigger
+      ref={ref}
+      style={(state: PressableStateCallbackType) => [
+        styles.trigger,
+        state.pressed && styles.triggerPressed,
+        typeof style === "function" ? style(state) : style,
+      ]}
+      {...props}
     >
-      {children}
-    </Pressable>
+      {typeof children === "function" ? (
+        children
+      ) : (
+        <Text style={[styles.triggerText, { color: colors.text }]}>
+          {children}
+        </Text>
+      )}
+    </CollapsiblePrimitive.Trigger>
   );
-};
+});
+CollapsibleTrigger.displayName = "CollapsibleTrigger";
 
-export const CollapsibleContent: React.FC<ContentProps> = ({
-  children,
-  forceMount = false,
-  style,
-}) => {
-  const { open } = useCollapsibleContext();
-
-  if (!forceMount && !open) {
-    return null;
-  }
-
+const CollapsibleContent = React.forwardRef<
+  React.ElementRef<typeof CollapsiblePrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content>
+>(({ style, children, ...props }, ref) => {
   return (
-    <View style={styles.contentWrapper}>
-      <View style={[styles.content, style]}>{children}</View>
-    </View>
+    <CollapsiblePrimitive.Content
+      ref={ref}
+      style={[styles.content, style]}
+      {...props}
+    >
+      <View style={styles.contentContainer}>
+        <Text style={styles.contentText}>{children}</Text>
+      </View>
+    </CollapsiblePrimitive.Content>
   );
-};
+});
+CollapsibleContent.displayName = "CollapsibleContent";
 
 const styles = StyleSheet.create({
   trigger: {
-    paddingVertical: 10,
+    borderRadius: 5,
   },
-  contentWrapper: {
-    overflow: "visible",
+  triggerPressed: {},
+  triggerText: {
+    fontSize: 16,
+    fontWeight: "500",
   },
   content: {
-    paddingVertical: 10,
+    overflow: "hidden",
+  },
+  contentContainer: {
+    padding: 10,
+    borderRadius: 5,
+  },
+  contentText: {
+    fontSize: 14,
   },
 });
+
+export { Collapsible, CollapsibleTrigger, CollapsibleContent };

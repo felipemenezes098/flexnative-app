@@ -2,43 +2,37 @@ import {
   AccordionContent,
   AccordionTrigger,
   AccordionItem,
-  AccordionRoot,
+  Accordion,
 } from "@/components/ui/accordion";
 import { Text } from "@/components/ui/text";
+import { View } from "@/components/ui/view";
 
 export function AccordionExample1() {
   return (
-      <AccordionRoot multiple>
-        <AccordionItem value="item1">
-          <AccordionTrigger>
-            <Text>Is it accessible?</Text>
-          </AccordionTrigger>
-          <AccordionContent>
+    <Accordion type="multiple" collapsible defaultValue={["item1"]}>
+      <AccordionItem value="item1">
+        <AccordionTrigger>Is it accessible?</AccordionTrigger>
+        <AccordionContent>
+          <View>
             <Text>Yes. It adheres to the WAI-ARIA design pattern.</Text>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item2">
-          <AccordionTrigger>
-            <Text>Is it styled?</Text>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Text>
-              Yes. It comes with default styles that matches the other
-              components' aesthetic.
-            </Text>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item3">
-          <AccordionTrigger>
-            <Text>Is it animated?</Text>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Text>
-              Yes. It's animated by default, but you can disable it if you
-              prefer.
-            </Text>
-          </AccordionContent>
-        </AccordionItem>
-      </AccordionRoot>
+          </View>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="item2">
+        <AccordionTrigger>Is it styled?</AccordionTrigger>
+        <AccordionContent>
+          <Text>
+            Yes. It comes with default styles that match the other components'
+            aesthetic.
+          </Text>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="item3">
+        <AccordionTrigger>Is it possible to redesign?</AccordionTrigger>
+        <AccordionContent>
+          <Text>Yes. You can use it to design your own accordion.</Text>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

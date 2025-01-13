@@ -12,10 +12,13 @@ import { Text } from "@/components/ui/text";
 import { TextInput } from "@/components/ui/text-input";
 import { Button } from "@/components/ui/button";
 import { StyleSheet } from "react-native";
+import { useState } from "react";
 
 export default function TabsExample1() {
+  const [value, setValue] = useState("account");
+
   return (
-    <Tabs defaultValue="account">
+    <Tabs value={value} onValueChange={setValue}>
       <TabsList>
         <TabsTrigger value="account">Account</TabsTrigger>
         <TabsTrigger value="password">Password</TabsTrigger>
